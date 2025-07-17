@@ -1,14 +1,9 @@
-# Use official Apache HTTP server image
 FROM httpd:2.4
 
-# Change Apache to listen on port 8080 (to avoid port 80 permission issues in OpenShift)
-RUN sed -i 's/Listen 80/Listen 8080/' /usr/local/apache2/conf/httpd.conf
+# Copy static files
+COPY ./index.html /usr/local/apache2/htdocs/
+COPY ./css/ /usr/local/apache2/htdocs/css/
 
-# Copy all files from repo root into Apache's web root
-COPY . /usr/local/apache2/htdocs/
-
-# Expose port 8080
-EXPOSE 8080
-
-# Start Apache in the foreground
-CMD ["httpd-foreground"]
+# Run apache in foreground as non-root and avoid pid file issue
+RUN sed -i 's|^#ServerName.*|ServerName localhost|' /usr/local/apache2/conf/httpd.conf && \
+    sed -i 's|^PidFile.*|#PidFile /usr/local/apache2/logs/httpd.pid|' /usr/local/apache2/conf/httpd.conf
